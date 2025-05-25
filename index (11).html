@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>盛鼎高新材料 - 数字孪生全数字信息化平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#36CFC9',
+            accent: '#FF7D00',
+            dark: '#1D2129',
+            light: '#F2F3F5'
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .bg-gradient-blue {
+        background: linear-gradient(135deg, #165DFF 0%, #0E42D2 100%);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-50 text-dark">
+  <!-- 侧边导航 -->
+  <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out" id="sidebar">
+    <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+          <i class="fa fa-cubes text-white"></i>
+        </div>
+        <h1 class="text-lg font-bold text-primary">盛鼎高新材料</h1>
+      </div>
+      <button class="lg:hidden text-gray-500 hover:text-gray-700" id="closeSidebar">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    
+    <nav class="px-4 py-6 space-y-1">
+      <a href="#dashboard" class="flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-primary/10 text-primary">
+        <i class="fa fa-dashboard w-5 h-5 mr-3"></i>
+        <span>总览仪表盘</span>
+      </a>
+      <a href="#production" class="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+        <i class="fa fa-industry w-5 h-5 mr-3"></i>
+        <span>生产管理系统</span>
+      </a>
+      <a href="#quality" class="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+        <i class="fa fa-check-square-o w-5 h-5 mr-3"></i>
+        <span>质量控制系统</span>
+      </a>
+      <a href="#energy" class="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+        <i class="fa fa-bolt w-5 h-5 mr-3"></i>
+        <span>能源管理系统</span>
+      </a>
+      <a href="#equipment" class="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+        <i class="fa fa-wrench w-5 h-5 mr-3"></i>
+        <span>设备维护系统</span>
+      </a>
+      <a href="#safety" class="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+        <i class="fa fa-shield w-5 h-5 mr-3"></i>
+        <span>安全监控系统</span>
+      </a>
+    </nav>
+    
+    <div class="absolute bottom-0 left-0 w-full p-4 border-t border-gray-200">
+      <div class="flex items-center space-x-3">
+        <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-10 h-10 rounded-full object-cover">
+        <div>
+          <p class="text-sm font-medium text-gray-900">管理员</p>
+          <p class="text-xs text-gray-500">系统管理员</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="lg:ml-64 flex flex-col min-h-screen">
+    <!-- 顶部导航 -->
+    <header class="bg-white shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <button class="p-2 rounded-md lg:hidden text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none" id="openSidebar">
+              <i class="fa fa-bars"></i>
+            </button>
+            <div class="ml-4 flex items-center">
+              <h2 class="text-lg font-semibold text-gray-900 hidden sm:block">数字孪生全数字信息化平台</h2>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <div class="relative">
+              <button class="flex items-center p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none">
+                <i class="fa fa-bell"></i>
+                <span class="absolute top-1 right-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full">3</span>
+              </button>
+            </div>
+            <div class="relative">
+              <button class="flex items-center p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none">
+                <i class="fa fa-cog"></i>
+              </button>
+            </div>
+            <div class="h-8 border-r border-gray-200 hidden sm:block"></div>
+            <div class="hidden sm:flex items-center space-x-2">
+              <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full object-cover">
+              <span class="text-sm font-medium text-gray-700">管理员</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 页面内容 -->
+    <main class="flex-grow p-4 sm:p-6 lg:p-8 bg-gray-50">
+      <!-- 总览仪表盘 -->
+      <section id="dashboard" class="space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-900">企业运营总览</h2>
+            <p class="mt-1 text-sm text-gray-500">实时监控企业生产运营状态，全面掌握关键指标</p>
+          </div>
+          <div class="mt-4 md:mt-0 flex space-x-2">
+            <button class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+              <i class="fa fa-download mr-1"></i> 导出报告
+            </button>
+            <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+              <i class="fa fa-refresh mr-1"></i> 刷新数据
+            </button>
+          </div>
+        </div>
+
+        <!-- 关键指标卡片 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">今日产量</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">2,548 <span class="text-sm font-medium text-green-500 ml-1">+12.5%</span></h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <i class="fa fa-cubes text-primary"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-primary h-1.5 rounded-full" style="width: 75%"></div>
+              </div>
+              <p class="mt-1 text-xs text-gray-500">目标完成率: 75%</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">设备运行率</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">96.2% <span class="text-sm font-medium text-green-500 ml-1">+2.1%</span></h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                <i class="fa fa-cogs text-secondary"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-secondary h-1.5 rounded-full" style="width: 96%"></div>
+              </div>
+              <p class="mt-1 text-xs text-gray-500">正常运行: 48/50 台</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">能源消耗</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">1,245 <span class="text-sm font-medium text-red-500 ml-1">+8.3%</span></h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                <i class="fa fa-bolt text-accent"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-accent h-1.5 rounded-full" style="width: 68%"></div>
+              </div>
+              <p class="mt-1 text-xs text-gray-500">同比上月: +8.3%</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">产品合格率</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">99.8% <span class="text-sm font-medium text-green-500 ml-1">+0.2%</span></h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="fa fa-check-circle text-green-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-green-500 h-1.5 rounded-full" style="width: 99%"></div>
+              </div>
+              <p class="mt-1 text-xs text-gray-500">不合格品: 5/2,548</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生产数据可视化 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-white rounded-xl shadow-sm p-6 lg:col-span-2">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-gray-900">生产趋势分析</h3>
+              <div class="flex space-x-2">
+                <button class="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">今日</button>
+                <button class="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">本周</button>
+                <button class="px-3 py-1 text-xs font-medium text-white bg-primary rounded-md">本月</button>
+              </div>
+            </div>
+            <div class="h-80">
+              <canvas id="productionChart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-gray-900">产品类别分布</h3>
+              <button class="text-sm text-primary hover:text-primary/80">
+                <i class="fa fa-ellipsis-v"></i>
+              </button>
+            </div>
+            <div class="h-80">
+              <canvas id="productDistributionChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 数字孪生3D模型 -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">工厂数字孪生模型</h3>
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                <span class="text-sm text-gray-600">正常运行</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                <span class="text-sm text-gray-600">需要注意</span>
+              </div>
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                <span class="text-sm text-gray-600">异常警告</span>
+              </div>
+            </div>
+          </div>
+          <div class="relative h-96 bg-gray-100 rounded-lg overflow-hidden">
+            <div id="twinModelContainer" class="w-full h-full"></div>
+            <div class="absolute bottom-4 right-4 flex space-x-2">
+              <button class="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50">
+                <i class="fa fa-arrows"></i>
+              </button>
+              <button class="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50">
+                <i class="fa fa-search-plus"></i>
+              </button>
+              <button class="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-gray-700 hover:bg-gray-50">
+                <i class="fa fa-refresh"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 生产管理系统 -->
+      <section id="production" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-900">生产管理系统</h2>
+          <p class="mt-1 text-sm text-gray-500">实时监控生产线状态，优化生产流程，提高生产效率</p>
+        </div>
+
+        <!-- 生产线状态 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">生产线 A</p>
+                <h3 class="mt-1 text-xl font-bold text-gray-900">正常运行</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="fa fa-check text-green-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">今日产量</span>
+                <span class="font-medium">1,248 / 1,500</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-green-500 h-1.5 rounded-full" style="width: 83%"></div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">运行时间</span>
+                <span class="font-medium">18.5 小时</span>
+              </div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">效率</span>
+                <span class="font-medium text-green-500">+12.5%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">生产线 B</p>
+                <h3 class="mt-1 text-xl font-bold text-gray-900">维护中</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                <i class="fa fa-wrench text-yellow-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">今日产量</span>
+                <span class="font-medium">850 / 1,200</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-yellow-500 h-1.5 rounded-full" style="width: 71%"></div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">预计恢复</span>
+                <span class="font-medium">2 小时后</span>
+              </div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">维护原因</span>
+                <span class="font-medium">定期保养</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">生产线 C</p>
+                <h3 class="mt-1 text-xl font-bold text-gray-900">异常停机</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <i class="fa fa-exclamation-triangle text-red-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">今日产量</span>
+                <span class="font-medium">450 / 1,000</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-red-500 h-1.5 rounded-full" style="width: 45%"></div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">停机时间</span>
+                <span class="font-medium">1.5 小时</span>
+              </div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">故障原因</span>
+                <span class="font-medium">传送带故障</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生产任务列表 -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">生产任务进度</h3>
+            <div class="flex items-center space-x-2">
+              <div class="relative">
+                <input type="text" placeholder="搜索任务..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              </div>
+              <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                <i class="fa fa-plus mr-1"></i> 新建任务
+              </button>
+            </div>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务编号</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">产品名称</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">数量</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">开始日期</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">截止日期</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">进度</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">PROD-20250525-001</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">高性能复合材料</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5,000 件</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-20</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-30</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">85%</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      进行中
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80 mr-3">查看</a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900">编辑</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">PROD-20250525-002</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">新型建筑材料</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">3,200 件</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-22</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-06-05</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="bg-blue-500 h-2 rounded-full" style="width: 45%"></div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">45%</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                      计划中
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80 mr-3">查看</a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900">编辑</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">PROD-20250525-003</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">环保包装材料</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10,000 件</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-18</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-28</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="bg-yellow-500 h-2 rounded-full" style="width: 68%"></div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">68%</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      待确认
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80 mr-3">查看</a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900">编辑</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">PROD-20250525-004</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">特种纤维材料</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2,500 件</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-25</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-06-10</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="bg-red-500 h-2 rounded-full" style="width: 15%"></div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">15%</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                      延期
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80 mr-3">查看</a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900">编辑</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="mt-6 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+              <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                上一页
+              </a>
+              <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                下一页
+              </a>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-gray-700">
+                  显示第 <span class="font-medium">1</span> 至 <span class="font-medium">4</span> 条，共 <span class="font-medium">12</span> 条记录
+                </p>
+              </div>
+              <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">上一页</span>
+                    <i class="fa fa-chevron-left"></i>
+                  </a>
+                  <a href="#" aria-current="page" class="z-10 bg-primary text-white relative inline-flex items-center px-4 py-2 border border-primary text-sm font-medium">
+                    1
+                  </a>
+                  <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                    2
+                  </a>
+                  <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                    3
+                  </a>
+                  <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                    ...
+                  </span>
+                  <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                    12
+                  </a>
+                  <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">下一页</span>
+                    <i class="fa fa-chevron-right"></i>
+                  </a>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 质量控制系统 -->
+      <section id="quality" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-900">质量控制系统</h2>
+          <p class="mt-1 text-sm text-gray-500">实时监控产品质量数据，确保产品符合高质量标准</p>
+        </div>
+
+        <!-- 质量指标卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">今日合格率</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">99.8%</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="fa fa-check-circle text-green-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center">
+                <span class="text-sm font-medium text-green-500 mr-2">↑ 0.2%</span>
+                <span class="text-xs text-gray-500">相比昨日</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">不合格品数</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">5</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <i class="fa fa-times-circle text-red-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center">
+                <span class="text-sm font-medium text-green-500 mr-2">↓ 3</span>
+                <span class="text-xs text-gray-500">相比昨日</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">质量检测次数</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">2,548</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <i class="fa fa-flask text-blue-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center">
+                <span class="text-sm font-medium text-green-500 mr-2">↑ 125</span>
+                <span class="text-xs text-gray-500">相比昨日</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">质量预警</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">0</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                <i class="fa fa-bell text-yellow-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center">
+                <span class="text-sm font-medium text-green-500 mr-2">↓ 2</span>
+                <span class="text-xs text-gray-500">相比昨日</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 质量趋势分析 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-gray-900">质量趋势分析</h3>
+              <div class="flex space-x-2">
+                <button class="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">周</button>
+                <button class="px-3 py-1 text-xs font-medium text-white bg-primary rounded-md">月</button>
+                <button class="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">季</button>
+              </div>
+            </div>
+            <div class="h-80">
+              <canvas id="qualityTrendChart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-gray-900">不合格原因分布</h3>
+              <button class="text-sm text-primary hover:text-primary/80">
+                <i class="fa fa-ellipsis-v"></i>
+              </button>
+            </div>
+            <div class="h-80">
+              <canvas id="defectReasonChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 不合格品详情 -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">近期不合格品记录</h3>
+            <div class="flex items-center space-x-2">
+              <div class="relative">
+                <input type="text" placeholder="搜索记录..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              </div>
+              <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                <i class="fa fa-file-pdf-o mr-1"></i> 导出报告
+              </button>
+            </div>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">产品批次</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">检测时间</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">不合格类型</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">数量</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">责任部门</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">处理状态</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BATCH-20250525-01</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-25 08:30</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">物理性能不达标</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">生产部</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      已处理
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80">详情</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BATCH-20250525-02</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-25 10:45</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">外观缺陷</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">质检部</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      已处理
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80">详情</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BATCH-20250525-03</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-25 14:20</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">化学指标超标</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">研发部</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      处理中
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80">详情</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BATCH-20250525-04</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025-05-25 16:15</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">包装破损</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">包装部</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      处理中
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80">详情</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 能源管理系统 -->
+      <section id="energy" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-900">能源管理系统</h2>
+          <p class="mt-1 text-sm text-gray-500">实时监控能源消耗情况，优化能源使用效率，降低生产成本</p>
+        </div>
+
+        <!-- 能源指标卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">今日总能耗</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">1,245 kWh</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <i class="fa fa-bolt text-red-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center">
+                <span class="text-sm font-medium text-red-500 mr-2">↑ 8.3%</span>
+                <span class="text-xs text-gray-500">相比昨日</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">单位产品能耗</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">0.49 kWh/件</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="fa fa-line-chart text-green-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center">
+                <span class="text-sm font-medium text-green-500 mr-2">↓ 2.1%</span>
+                <span class="text-xs text-gray-500">相比昨日</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">能源成本</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">¥871.50</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <i class="fa fa-money text-blue-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center">
+                <span class="text-sm font-medium text-red-500 mr-2">↑ 7.8%</span>
+                <span class="text-xs text-gray-500">相比昨日</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-500">节能目标完成率</p>
+                <h3 class="mt-1 text-2xl font-bold text-gray-900">68.5%</h3>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                <i class="fa fa-bullseye text-yellow-500"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-yellow-500 h-1.5 rounded-full" style="width: 68%"></div>
+              </div>
+              <p class="mt-1 text-xs text-gray-500">目标: 降低15%能耗</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 能源分析图表 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="bg-white rounded-xl shadow-sm p-6 lg:col-span-2">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-gray-900">能源消耗趋势</h3>
+              <div class="flex space-x-2">
+                <button class="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">今日</button>
+                <button class="px-3 py-1 text-xs font-medium text-white bg-primary rounded-md">本周</button>
+                <button class="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">本月</button>
+              </div>
+            </div>
+            <div class="h-80">
+              <canvas id="energyTrendChart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-gray-900">能源类型分布</h3>
+              <button class="text-sm text-primary hover:text-primary/80">
+                <i class="fa fa-ellipsis-v"></i>
+              </button>
+            </div>
+            <div class="h-80">
+              <canvas id="energyTypeChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 设备能耗详情 -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">主要设备能耗详情</h3>
+            <div class="flex items-center space-x-2">
+              <div class="relative">
+                <input type="text" placeholder="搜索设备..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              </div>
+              <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                <i class="fa fa-refresh mr-1"></i> 刷新数据
+              </button>
+            </div>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">设备名称</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">设备编号</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">今日能耗</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">运行时间</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">单位能耗</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fa fa-industry text-primary"></i>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">反应釜 A</div>
+                        <div class="text-xs text-gray-500">化工生产</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">EQ-20250525-01</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">450 kWh</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">18.5 小时</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">24.3 kWh/小时</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      运行中
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80">详情</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fa fa-industry text-primary"></i>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">混合机 B</div>
+                        <div class="text-xs text-gray-500">材料混合</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">EQ-20250525-02</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">320 kWh</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">16.2 小时</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">19.8 kWh/小时</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      运行中
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80">详情</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fa fa-industry text-primary"></i>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">熔炉 C</div>
+                        <div class="text-xs text-gray-500">高温处理</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">EQ-20250525-03</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">280 kWh</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">12.0 小时</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">23.3 kWh/小时</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      运行中
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80">详情</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fa fa-industry text-primary"></i>
+                      </div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">冷却系统 D</div>
+                        <div class="text-xs text-gray-500">温度控制</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">EQ-20250525-04</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">195 kWh</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">24.0 小时</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">8.1 kWh/小时</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      运行中
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <a href="#" class="text-primary hover:text-primary/80">详情</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200">
+      <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <div class="flex items-center space-x-2">
+            <div class="w-6 h-6 bg-primary rounded-lg flex items-center justify-center">
+              <i class="fa fa-cubes text-white text-xs"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-900">盛鼎高新材料有限公司 © 2025</span>
+          </div>
+          <div class="mt-4 md:mt-0 flex space-x-6">
+            <a href="#" class="text-gray-500 hover:text-gray-700">
+              <i class="fa fa-question-circle"></i>
+              <span class="ml-1 text-sm">帮助中心</span>
+            </a>
+            <a href="#" class="text-gray-500 hover:text-gray-700">
+              <i class="fa fa-file-text-o"></i>
+              <span class="ml-1 text-sm">使用文档</span>
+            </a>
+            <a href="#" class="text-gray-500 hover:text-gray-700">
+              <i class="fa fa-envelope-o"></i>
+              <span class="ml-1 text-sm">联系我们</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // 侧边栏控制
+    document.getElementById('openSidebar').addEventListener('click', function() {
+      document.getElementById('sidebar').classList.remove('-translate-x-full');
+    });
+    
+    document.getElementById('closeSidebar').addEventListener('click', function() {
+      document.getElementById('sidebar').classList.add('-translate-x-full');
+    });
+    
+    // 导航切换
+    document.querySelectorAll('#sidebar a').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // 移除所有激活状态
+        document.querySelectorAll('#sidebar a').forEach(item => {
+          item.classList.remove('bg-primary/10', 'text-primary');
+          item.classList.add('text-gray-700');
+        });
+        
+        // 添加当前激活状态
+        this.classList.add('bg-primary/10', 'text-primary');
+        this.classList.remove('text-gray-700');
+        
+        // 隐藏所有内容区域
+        document.querySelectorAll('main > section').forEach(section => {
+          section.classList.add('hidden');
+        });
+        
+        // 显示对应内容区域
+        const target = this.getAttribute('href').substring(1);
+        document.getElementById(target).classList.remove('hidden');
+        
+        // 在移动设备上点击后关闭侧边栏
+        if (window.innerWidth < 1024) {
+          document.getElementById('sidebar').classList.add('-translate-x-full');
+        }
+      });
+    });
+    
+    // 生产趋势图表
+    const productionCtx = document.getElementById('productionChart').getContext('2d');
+    const productionChart = new Chart(productionCtx, {
+      type: 'line',
+      data: {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+          {
+            label: '实际产量',
+            data: [18500, 21000, 23500, 24800, 26200, 27500, 28900, 30200, 31500, 32800, 34200, 35500],
+            borderColor: '#165DFF',
+            backgroundColor: 'rgba(22, 93, 255, 0.1)',
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: '目标产量',
+            data: [20000, 21000, 22000, 23000, 24000, 25000, 26000, 27000, 28000, 29000, 30000, 31000],
+            borderColor: '#94A3B8',
+            borderDash: [5, 5],
+            tension: 0.3,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grid: {
+              drawBorder: false,
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+    
+    // 产品类别分布图表
+    const productDistributionCtx = document.getElementById('productDistributionChart').getContext('2d');
+    const productDistributionChart = new Chart(productDistributionCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['高性能复合材料', '新型建筑材料', '环保包装材料', '特种纤维材料', '其他产品'],
+        datasets: [{
+          data: [35, 25, 20, 15, 5],
+          backgroundColor: [
+            '#165DFF',
+            '#36CFC9',
+            '#FF7D00',
+            '#722ED1',
+            '#94A3B8'
+          ],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          }
+        },
+        cutout: '70%'
+      }
+    });
+    
+    // 质量趋势图表
+    const qualityTrendCtx = document.getElementById('qualityTrendChart').getContext('2d');
+    const qualityTrendChart = new Chart(qualityTrendCtx, {
+      type: 'line',
+      data: {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+          {
+            label: '合格率 (%)',
+            data: [98.5, 98.8, 99.0, 99.2, 99.3, 99.4, 99.5, 99.6, 99.6, 99.7, 99.7, 99.8],
+            borderColor: '#00B42A',
+            backgroundColor: 'rgba(0, 180, 42, 0.1)',
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: '不合格品数',
+            data: [225, 190, 165, 140, 125, 110, 95, 80, 70, 60, 50, 40],
+            borderColor: '#F53F3F',
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            borderWidth: 2,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            min: 98,
+            max: 100,
+            title: {
+              display: true,
+              text: '合格率 (%)'
+            },
+            grid: {
+              drawBorder: false,
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          },
+          y1: {
+            beginAtZero: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: '不合格品数'
+            },
+            grid: {
+              drawBorder: false,
+              drawOnChartArea: false
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+    
+    // 不合格原因分布图表
+    const defectReasonCtx = document.getElementById('defectReasonChart').getContext('2d');
+    const defectReasonChart = new Chart(defectReasonCtx, {
+      type: 'bar',
+      data: {
+        labels: ['物理性能不达标', '化学指标超标', '外观缺陷', '尺寸偏差', '包装问题', '其他'],
+        datasets: [{
+          label: '不合格次数',
+          data: [42, 28, 35, 18, 12, 5],
+          backgroundColor: [
+            '#165DFF',
+            '#36CFC9',
+            '#FF7D00',
+            '#722ED1',
+            '#F53F3F',
+            '#94A3B8'
+          ],
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              drawBorder: false,
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+    
+    // 能源趋势图表
+    const energyTrendCtx = document.getElementById('energyTrendChart').getContext('2d');
+    const energyTrendChart = new Chart(energyTrendCtx, {
+      type: 'line',
+      data: {
+        labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        datasets: [
+          {
+            label: '电力 (kWh)',
+            data: [1150, 1245, 1180, 1320, 1280, 850, 720],
+            borderColor: '#165DFF',
+            backgroundColor: 'rgba(22, 93, 255, 0.1)',
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: '天然气 (m³)',
+            data: [320, 340, 330, 350, 345, 220, 180],
+            borderColor: '#36CFC9',
+            backgroundColor: 'rgba(54, 207, 201, 0.1)',
+            tension: 0.3,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grid: {
+              drawBorder: false,
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+    
+    // 能源类型分布图表
+    const energyTypeCtx = document.getElementById('energyTypeChart').getContext('2d');
+    const energyTypeChart = new Chart(energyTypeCtx, {
+      type: 'pie',
+      data: {
+        labels: ['电力', '天然气', '蒸汽', '其他'],
+        datasets: [{
+          data: [65, 25, 8, 2],
+          backgroundColor: [
+            '#165DFF',
+            '#36CFC9',
+            '#FF7D00',
+            '#94A3B8'
+          ],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          }
+        }
+      }
+    });
+    
+    // 数字孪生3D模型
+    function initTwinModel() {
+      const container = document.getElementById('twinModelContainer');
+      
+      // 创建场景
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf2f3f5);
+      
+      // 创建相机
+      const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.z = 5;
+      
+      // 创建渲染器
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+      
+      // 添加光源
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+      
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(5, 5, 5);
+      scene.add(directionalLight);
+      
+      // 创建工厂模型（简化版）
+      // 主厂房
+      const mainBuildingGeometry = new THREE.BoxGeometry(3, 1, 2);
+      const mainBuildingMaterial = new THREE.MeshStandardMaterial({ color: 0x165DFF });
+      const mainBuilding = new THREE.Mesh(mainBuildingGeometry, mainBuildingMaterial);
+      scene.add(mainBuilding);
+      
+      // 反应釜
+      const reactorGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1, 32);
+      const reactorMaterial = new THREE.MeshStandardMaterial({ color: 0x36CFC9 });
+      const reactor = new THREE.Mesh(reactorGeometry, reactorMaterial);
+      reactor.position.set(-1, 0.5, 0);
+      scene.add(reactor);
+      
+      // 熔炉
+      const furnaceGeometry = new THREE.SphereGeometry(0.4, 32, 32);
+      const furnaceMaterial = new THREE.MeshStandardMaterial({ color: 0xFF7D00 });
+      const furnace = new THREE.Mesh(furnaceGeometry, furnaceMaterial);
+      furnace.position.set(1, 0.4, 0);
+      scene.add(furnace);
+      
+      // 添加交互控制器
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      
+      // 监听窗口大小变化
+      window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+      
+      // 动画循环
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      
+      animate();
+    }
+    
+    // 等待页面加载完成后初始化3D模型
+    window.addEventListener('load', initTwinModel);
+  </script>
+</body>
+</html>
+    
